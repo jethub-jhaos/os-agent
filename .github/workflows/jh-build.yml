@@ -46,3 +46,31 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
+      - uses: robinraju/release-downloader@v1.7
+        with:
+          repository: ${{ github.repository }}
+          latest: true
+          fileName: "*.deb"
+          out-file-path: debs
+
+      - name: List files
+        id: listfiles
+        run: |
+          echo "files=$(ls debs/)" >> $GITHUB_OUTPUT
+      
+      - name: Deploy to server
+        if: 1
+        uses: jethome-iot/actions/repo-upload@master
+        with:
+          key: ${{ secrets.SSH_KEY }}
+          known_hosts: ${{ secrets.SSH_KNOWNHOSTS_UPLOAD }}
+          distro: bullseye
+          path: debs
+          files: ${{ steps.listfiles.outputs.files }}
+          branch: test
+
+      - name: Upload packets
+        uses: actions/upload-artifact@v2
+        with:
+          name: debs
+          path: debs
