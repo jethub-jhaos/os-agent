@@ -1,0 +1,76 @@
+name: JH build
+
+on:
+  release:
+    types: ["published"]
+  pull_request:
+    branches: ["main-jethub"]
+  workflow_dispatch:
+
+
+env:
+  GOLANG_VERSION: "1.16"
+
+jobs:
+  build:
+    name: Build OS-Agent
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout the repository
+        uses: actions/checkout@v3.5.0
+        with:
+          fetch-depth: 0 # Needed for changelog generation
+
+      - name: Import GPG key
+        id: import_gpg
+        uses: crazy-max/ghaction-import-gpg@v5
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+
+      - name: Setup go ${{ env.GOLANG_VERSION }}
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ env.GOLANG_VERSION }}
+
+      - name: Run GoReleaser build
+        uses: goreleaser/goreleaser-action@v4.2.0
+        if: github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
+        with:
+          args: build --snapshot --clean
+
+      - name: Run GoReleaser release
+        uses: goreleaser/goreleaser-action@v4.2.0
+        if: github.event_name == 'release'
+        with:
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
+      - uses: robinraju/release-downloader@v1.7
+        with:
+          repository: ${{ github.repository }}
+          latest: true
+          fileName: "*.deb"
+          out-file-path: debs
+
+      - name: List files
+        id: listfiles
+        run: |
+          echo "files=$(ls debs/)" >> $GITHUB_OUTPUT
+
+      - name: Deploy to server
+        if: 1
+        uses: jethome-iot/actions/repo-upload@master
+        with:
+          SSH_KEY: ${{ secrets.SSHKEY }}
+          SSH_KNOWNHOSTS_UPLOAD: ${{ secrets.SSHKNOWNHOSTS }}
+          distro: bullseye
+          path: debs
+          files: ${{ steps.listfiles.outputs.files }}
+          branch: test
+
+      - name: Upload packets
+        uses: actions/upload-artifact@v2
+        with:
+          name: debs
+          path: debs
