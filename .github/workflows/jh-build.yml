@@ -62,8 +62,8 @@ jobs:
         if: 1
         uses: jethome-iot/actions/repo-upload@master
         with:
-          SSH_KEY: ${{ secrets.SSH_KEY }}
-          SSH_KNOWNHOSTS_UPLOAD: ${{ secrets.SSH_KNOWNHOSTS_UPLOAD }}
+          SSH_KEY: ${{ secrets.SSHKEY }}
+          SSH_KNOWNHOSTS_UPLOAD: ${{ secrets.SSHKNOWNHOSTS }}
           distro: bullseye
           path: debs
           files: ${{ steps.listfiles.outputs.files }}
