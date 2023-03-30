@@ -57,13 +57,13 @@ jobs:
         id: listfiles
         run: |
           echo "files=$(ls debs/)" >> $GITHUB_OUTPUT
-      
+
       - name: Deploy to server
         if: 1
         uses: jethome-iot/actions/repo-upload@master
         with:
-          key: ${{ secrets.SSH_KEY }}
-          known_hosts: ${{ secrets.SSH_KNOWNHOSTS_UPLOAD }}
+          SSH_KEY: ${{ secrets.SSH_KEY }}
+          SSH_KNOWNHOSTS_UPLOAD: ${{ secrets.SSH_KNOWNHOSTS_UPLOAD }}
           distro: bullseye
           path: debs
           files: ${{ steps.listfiles.outputs.files }}
