@@ -28,7 +28,7 @@ changelog:
   sort: asc
 
 nfpms:
-  - maintainer: Home Assistant <hello@home-assistant.io>
+  - maintainer: JetHome <dev@jethome.ru>
     description: Home Assistant OS Agent
     homepage: https://www.home-assistant.io
     license: Apache 2.0
@@ -52,5 +52,9 @@ nfpms:
       postinstall: contrib/debian/postinstall.sh
       preremove: contrib/debian/preremove.sh
       postremove: contrib/debian/postremove.sh
+
+signs:
+  - artifacts: checksum
+    args: ["--batch", "-u", "{{ .Env.GPG_FINGERPRINT }}", "--output", "${signature}", "--detach-sign", "${artifact}"]
 
 release:
