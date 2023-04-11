@@ -56,7 +56,9 @@ jobs:
       - name: List files
         id: listfiles
         run: |
-          echo "files=$(ls debs/)" >> $GITHUB_OUTPUT
+          echo 'files<<EOF' >> $GITHUB_OUTPUT
+          echo "$(ls debs/)" >> $GITHUB_OUTPUT
+          echo 'EOF' >> $GITHUB_OUTPUT
 
       - name: Deploy to server
         if: 1
